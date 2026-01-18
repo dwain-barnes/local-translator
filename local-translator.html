@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Translator - 55 Languages | Powered by translateGemma</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --google-blue: #1a73e8;
+            --google-blue-hover: #1557b0;
+            --google-grey-100: #f8f9fa;
+            --google-grey-200: #e8eaed;
+            --google-grey-300: #dadce0;
+            --google-grey-500: #80868b;
+            --google-grey-700: #5f6368;
+            --google-grey-900: #202124;
+            --google-green: #34a853;
+            --google-red: #ea4335;
+            --google-yellow: #fbbc04;
+            --shadow-1: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+            --shadow-2: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--google-grey-100);
+            color: var(--google-grey-900);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 28px;
+            font-weight: 500;
+            color: var(--google-grey-900);
+            margin-bottom: 8px;
+        }
+
+        .logo span {
+            color: var(--google-blue);
+        }
+
+        .tagline {
+            color: var(--google-grey-700);
+            font-size: 14px;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-1);
+            overflow: hidden;
+        }
+
+        .language-bar {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--google-grey-200);
+            background: var(--google-grey-100);
+            gap: 12px;
+        }
+
+        .language-select {
+            flex: 1;
+            padding: 10px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid var(--google-grey-300);
+            border-radius: 4px;
+            background: white;
+            color: var(--google-grey-900);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235f6368' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+
+        .language-select:focus {
+            outline: none;
+            border-color: var(--google-blue);
+        }
+
+        .swap-btn {
+            padding: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .swap-btn:hover {
+            background: var(--google-grey-200);
+        }
+
+        .swap-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--google-grey-700);
+        }
+
+        .translation-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 300px;
+        }
+
+        .input-section, .output-section {
+            padding: 16px;
+        }
+
+        .input-section {
+            border-right: 1px solid var(--google-grey-200);
+        }
+
+        .drop-zone {
+            border: 2px dashed var(--google-grey-300);
+            border-radius: 8px;
+            padding: 40px 24px;
+            text-align: center;
+            transition: all 0.2s;
+            cursor: pointer;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: var(--google-blue);
+            background: #e8f0fe;
+        }
+
+        .drop-zone svg {
+            width: 48px;
+            height: 48px;
+            fill: var(--google-grey-500);
+            margin-bottom: 16px;
+        }
+
+        .drop-zone.dragover svg {
+            fill: var(--google-blue);
+        }
+
+        .drop-zone-text {
+            font-size: 14px;
+            color: var(--google-grey-700);
+            margin-bottom: 8px;
+        }
+
+        .drop-zone-hint {
+            font-size: 12px;
+            color: var(--google-grey-500);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 200px;
+            border: none;
+            resize: none;
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--google-grey-900);
+            outline: none;
+        }
+
+        .text-input::placeholder {
+            color: var(--google-grey-500);
+        }
+
+        .output-text {
+            min-height: 200px;
+            font-size: 16px;
+            color: var(--google-grey-900);
+            white-space: pre-wrap;
+        }
+
+        .output-placeholder {
+            color: var(--google-grey-500);
+            font-style: italic;
+        }
+
+        .file-preview {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: var(--google-grey-100);
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .file-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            color: white;
+        }
+
+        .file-icon.pdf { background: #ea4335; }
+        .file-icon.docx { background: #4285f4; }
+        .file-icon.image { background: #34a853; }
+        .file-icon.txt { background: #80868b; }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--google-grey-900);
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: var(--google-grey-500);
+        }
+
+        .remove-file {
+            padding: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .remove-file:hover {
+            background: var(--google-grey-200);
+        }
+
+        .remove-file svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--google-grey-500);
+        }
+
+        .actions {
+            padding: 16px;
+            border-top: 1px solid var(--google-grey-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .translate-btn {
+            background: var(--google-blue);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .translate-btn:hover {
+            background: var(--google-blue-hover);
+            box-shadow: var(--shadow-1);
+        }
+
+        .translate-btn:disabled {
+            background: var(--google-grey-300);
+            cursor: not-allowed;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: var(--google-grey-700);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-dot.connected { background: var(--google-green); }
+        .status-dot.disconnected { background: var(--google-red); }
+        .status-dot.loading { background: var(--google-yellow); animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .settings {
+            margin-top: 24px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow-1);
+            padding: 16px;
+        }
+
+        .settings-title {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            color: var(--google-grey-900);
+        }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--google-grey-200);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            color: var(--google-grey-700);
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .setting-select {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid var(--google-grey-300);
+            border-radius: 4px;
+            background: white;
+            color: var(--google-grey-900);
+            cursor: pointer;
+        }
+
+        .setting-select:focus {
+            outline: none;
+            border-color: var(--google-blue);
+        }
+
+        .setting-input {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid var(--google-grey-300);
+            border-radius: 4px;
+            width: 200px;
+        }
+
+        .setting-input:focus {
+            outline: none;
+            border-color: var(--google-blue);
+        }
+
+        .pull-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--google-grey-300);
+            border-radius: 4px;
+            background: white;
+            color: var(--google-grey-700);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pull-btn:hover {
+            background: var(--google-grey-100);
+            border-color: var(--google-grey-500);
+        }
+
+        .pull-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pull-btn.pulling {
+            background: #e8f0fe;
+            border-color: var(--google-blue);
+            color: var(--google-blue);
+        }
+
+        .model-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .model-status.installed {
+            background: #e6f4ea;
+            color: var(--google-green);
+        }
+
+        .model-status.not-installed {
+            background: #fce8e6;
+            color: var(--google-red);
+        }
+
+        .model-status.pulling {
+            background: #fef7e0;
+            color: #b06000;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--google-grey-300);
+            border-top-color: var(--google-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: var(--google-grey-500);
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        .error-message {
+            background: #fce8e6;
+            color: #c5221f;
+            padding: 12px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--google-grey-200);
+        }
+
+        .copy-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: var(--google-grey-500);
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .output-label {
+            font-size: 12px;
+            color: var(--google-grey-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .new-translation-btn {
+            background: white;
+            color: var(--google-blue);
+            border: 1px solid var(--google-blue);
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 12px;
+            display: none;
+        }
+
+        .new-translation-btn:hover {
+            background: #e8f0fe;
+        }
+
+        .new-translation-btn.visible {
+            display: inline-block;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 12px;
+            color: var(--google-grey-500);
+        }
+
+        footer a {
+            color: var(--google-blue);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Pull progress modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--shadow-2);
+        }
+
+        .modal-title {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: var(--google-grey-200);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--google-blue);
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: var(--google-grey-700);
+            margin-bottom: 8px;
+        }
+
+        .progress-detail {
+            font-size: 12px;
+            color: var(--google-grey-500);
+        }
+
+        @media (max-width: 768px) {
+            .translation-area {
+                grid-template-columns: 1fr;
+            }
+
+            .input-section {
+                border-right: none;
+                border-bottom: 1px solid var(--google-grey-200);
+            }
+
+            .language-bar {
+                flex-wrap: wrap;
+            }
+
+            .language-select {
+                min-width: calc(50% - 24px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">Local <span>Translator</span></h1>
+            <p class="tagline">Private, local AI translation across 55 languages - powered by translateGemma</p>
+        </header>
+
+        <div class="main-card">
+            <div class="language-bar">
+                <select class="language-select" id="sourceLang"></select>
+                <button class="swap-btn" id="swapBtn" title="Swap languages">
+                    <svg viewBox="0 0 24 24"><path d="M6.99 11L3 15l3.99 4v-3H14v-2H6.99v-3zM21 9l-3.99-4v3H10v2h7.01v3L21 9z"/></svg>
+                </button>
+                <select class="language-select" id="targetLang"></select>
+            </div>
+
+            <div class="translation-area">
+                <div class="input-section">
+                    <div id="filePreview" style="display: none;"></div>
+                    <div id="errorMessage" class="error-message" style="display: none;"></div>
+                    
+                    <div id="dropZone" class="drop-zone">
+                        <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+                        <p class="drop-zone-text">Drag & drop files here or click to browse</p>
+                        <p class="drop-zone-hint">Supports PDF, Word (.docx), images, and text files<br><small style="color: #1a73e8;">Double-click to type text directly</small></p>
+                        <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg,.gif,.webp">
+                    </div>
+
+                    <div id="textInputContainer" style="display: none;">
+                        <textarea id="textInput" class="text-input" placeholder="Type or paste text here to translate..."></textarea>
+                        <div class="char-count"><span id="charCount">0</span> characters</div>
+                    </div>
+                </div>
+
+                <div class="output-section">
+                    <div class="output-header">
+                        <span class="output-label">Translation</span>
+                        <button class="copy-btn" id="copyBtn" title="Copy translation">
+                            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                        </button>
+                    </div>
+                    <div id="outputText" class="output-text">
+                        <span class="output-placeholder">Translation will appear here...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <div class="status">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="statusText">Checking Ollama connection...</span>
+                </div>
+                <div>
+                    <button class="new-translation-btn" id="newTranslationBtn">New Translation</button>
+                    <button class="translate-btn" id="translateBtn" disabled>Translate</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings">
+            <h2 class="settings-title">Settings</h2>
+            <div class="setting-row">
+                <span class="setting-label">Model</span>
+                <div class="setting-control">
+                    <select class="setting-select" id="modelSelect">
+                        <option value="translategemma" data-size="3.3GB">translategemma (4B - 3.3GB)</option>
+                        <option value="translategemma:12b" data-size="8.1GB">translategemma:12b (8.1GB)</option>
+                        <option value="translategemma:27b" data-size="17GB" selected>translategemma:27b (17GB)</option>
+                    </select>
+                    <span class="model-status" id="modelStatus">Checking...</span>
+                    <button class="pull-btn" id="pullBtn" style="display: none;">Download</button>
+                </div>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Ollama URL</span>
+                <input type="text" class="setting-input" id="ollamaUrl" value="http://localhost:11434">
+            </div>
+        </div>
+
+        <footer>
+            <p>All translations happen locally on your computer. No data is sent to external servers.</p>
+            <p style="margin-top: 8px;">Powered by <a href="https://ollama.com/library/translategemma" target="_blank">translateGemma</a> and <a href="https://ollama.com" target="_blank">Ollama</a></p>
+            <p style="margin-top: 8px;">Created by <a href="https://github.com/Dwain-Barnes" target="_blank">Dwain-Barnes</a></p>
+        </footer>
+    </div>
+
+    <!-- Pull Progress Modal -->
+    <div class="modal-overlay" id="pullModal">
+        <div class="modal">
+            <h3 class="modal-title">Downloading Model</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text" id="progressText">Starting download...</p>
+            <p class="progress-detail" id="progressDetail"></p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Supported languages (55 core languages from translateGemma)
+        const LANGUAGES = [
+            { code: 'en', name: 'English' },
+            { code: 'af', name: 'Afrikaans' },
+            { code: 'ar', name: 'Arabic' },
+            { code: 'bg', name: 'Bulgarian' },
+            { code: 'bn', name: 'Bengali' },
+            { code: 'ca', name: 'Catalan' },
+            { code: 'cs', name: 'Czech' },
+            { code: 'cy', name: 'Welsh' },
+            { code: 'da', name: 'Danish' },
+            { code: 'de', name: 'German' },
+            { code: 'el', name: 'Greek' },
+            { code: 'es', name: 'Spanish' },
+            { code: 'et', name: 'Estonian' },
+            { code: 'fa', name: 'Persian' },
+            { code: 'fi', name: 'Finnish' },
+            { code: 'fr', name: 'French' },
+            { code: 'ga', name: 'Irish' },
+            { code: 'gd', name: 'Scottish Gaelic' },
+            { code: 'gl', name: 'Galician' },
+            { code: 'gu', name: 'Gujarati' },
+            { code: 'he', name: 'Hebrew' },
+            { code: 'hi', name: 'Hindi' },
+            { code: 'hr', name: 'Croatian' },
+            { code: 'hu', name: 'Hungarian' },
+            { code: 'id', name: 'Indonesian' },
+            { code: 'it', name: 'Italian' },
+            { code: 'ja', name: 'Japanese' },
+            { code: 'kn', name: 'Kannada' },
+            { code: 'ko', name: 'Korean' },
+            { code: 'lt', name: 'Lithuanian' },
+            { code: 'lv', name: 'Latvian' },
+            { code: 'mk', name: 'Macedonian' },
+            { code: 'ml', name: 'Malayalam' },
+            { code: 'mr', name: 'Marathi' },
+            { code: 'ms', name: 'Malay' },
+            { code: 'mt', name: 'Maltese' },
+            { code: 'nl', name: 'Dutch' },
+            { code: 'no', name: 'Norwegian' },
+            { code: 'pl', name: 'Polish' },
+            { code: 'pt', name: 'Portuguese' },
+            { code: 'ro', name: 'Romanian' },
+            { code: 'ru', name: 'Russian' },
+            { code: 'sk', name: 'Slovak' },
+            { code: 'sl', name: 'Slovenian' },
+            { code: 'sq', name: 'Albanian' },
+            { code: 'sr', name: 'Serbian' },
+            { code: 'sv', name: 'Swedish' },
+            { code: 'sw', name: 'Swahili' },
+            { code: 'ta', name: 'Tamil' },
+            { code: 'te', name: 'Telugu' },
+            { code: 'th', name: 'Thai' },
+            { code: 'tr', name: 'Turkish' },
+            { code: 'uk', name: 'Ukrainian' },
+            { code: 'ur', name: 'Urdu' },
+            { code: 'vi', name: 'Vietnamese' },
+            { code: 'zh-Hans', name: 'Chinese (Simplified)' },
+            { code: 'zh-Hant', name: 'Chinese (Traditional)' }
+        ];
+
+        // State
+        let currentFile = null;
+        let currentText = '';
+        let currentImageBase64 = null;
+        let installedModels = [];
+
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const filePreview = document.getElementById('filePreview');
+        const textInputContainer = document.getElementById('textInputContainer');
+        const textInput = document.getElementById('textInput');
+        const charCount = document.getElementById('charCount');
+        const outputText = document.getElementById('outputText');
+        const translateBtn = document.getElementById('translateBtn');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const copyBtn = document.getElementById('copyBtn');
+        const modelSelect = document.getElementById('modelSelect');
+        const modelStatus = document.getElementById('modelStatus');
+        const pullBtn = document.getElementById('pullBtn');
+        const ollamaUrl = document.getElementById('ollamaUrl');
+        const swapBtn = document.getElementById('swapBtn');
+        const sourceLang = document.getElementById('sourceLang');
+        const targetLang = document.getElementById('targetLang');
+        const errorMessage = document.getElementById('errorMessage');
+        const pullModal = document.getElementById('pullModal');
+        const progressFill = document.getElementById('progressFill');
+        const progressText = document.getElementById('progressText');
+        const progressDetail = document.getElementById('progressDetail');
+        const newTranslationBtn = document.getElementById('newTranslationBtn');
+
+        // Initialize language dropdowns
+        function initLanguages() {
+            LANGUAGES.forEach(lang => {
+                const sourceOption = document.createElement('option');
+                sourceOption.value = lang.code;
+                sourceOption.textContent = lang.name;
+                sourceLang.appendChild(sourceOption);
+
+                const targetOption = document.createElement('option');
+                targetOption.value = lang.code;
+                targetOption.textContent = lang.name;
+                targetLang.appendChild(targetOption);
+            });
+
+            // Set defaults
+            sourceLang.value = 'en';
+            targetLang.value = 'cy'; // Welsh as default target
+        }
+
+        // Check Ollama connection and model status
+        async function checkConnection() {
+            statusDot.className = 'status-dot loading';
+            statusText.textContent = 'Checking Ollama connection...';
+
+            try {
+                const response = await fetch(`${ollamaUrl.value}/api/tags`);
+                if (response.ok) {
+                    const data = await response.json();
+                    installedModels = data.models?.map(m => m.name) || [];
+
+                    statusDot.className = 'status-dot connected';
+                    statusText.textContent = 'Connected to Ollama';
+
+                    // Auto-select first installed translategemma model
+                    const installedTranslateGemma = installedModels.find(m =>
+                        m.startsWith('translategemma')
+                    );
+                    if (installedTranslateGemma) {
+                        modelSelect.value = installedTranslateGemma.replace(':latest', '');
+                    }
+
+                    checkModelStatus();
+                } else {
+                    throw new Error('Connection failed');
+                }
+            } catch (error) {
+                statusDot.className = 'status-dot disconnected';
+                statusText.textContent = 'Cannot connect to Ollama. Is it running?';
+                translateBtn.disabled = true;
+                modelStatus.className = 'model-status not-installed';
+                modelStatus.textContent = 'Offline';
+                pullBtn.style.display = 'none';
+            }
+        }
+
+        // Check if selected model is installed
+        function checkModelStatus() {
+            const selectedModel = modelSelect.value;
+
+            // Exact match check
+            const isInstalled = installedModels.some(m => {
+                // Remove :latest suffix for comparison
+                const modelName = m.replace(':latest', '');
+                return modelName === selectedModel || m === selectedModel;
+            });
+
+            console.log('Checking model:', selectedModel);
+            console.log('Installed models:', installedModels);
+            console.log('Is installed:', isInstalled);
+
+            if (isInstalled) {
+                modelStatus.className = 'model-status installed';
+                modelStatus.textContent = 'Installed ✓';
+                pullBtn.style.display = 'none';
+                translateBtn.disabled = false;
+            } else {
+                modelStatus.className = 'model-status not-installed';
+                modelStatus.textContent = 'Not installed';
+                pullBtn.style.display = 'inline-block';
+                translateBtn.disabled = true;
+            }
+        }
+
+        // Pull model from Ollama
+        async function pullModel() {
+            const modelName = modelSelect.value;
+            
+            pullBtn.disabled = true;
+            pullBtn.classList.add('pulling');
+            pullBtn.textContent = 'Downloading...';
+            modelStatus.className = 'model-status pulling';
+            modelStatus.textContent = 'Downloading...';
+            
+            pullModal.classList.add('active');
+            progressFill.style.width = '0%';
+            progressText.textContent = 'Starting download...';
+            progressDetail.textContent = '';
+
+            try {
+                const response = await fetch(`${ollamaUrl.value}/api/pull`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model: modelName, stream: true })
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const text = decoder.decode(value);
+                    const lines = text.split('\n').filter(line => line.trim());
+
+                    for (const line of lines) {
+                        try {
+                            const data = JSON.parse(line);
+                            
+                            if (data.status) {
+                                progressText.textContent = data.status;
+                            }
+                            
+                            if (data.total && data.completed) {
+                                const percent = Math.round((data.completed / data.total) * 100);
+                                progressFill.style.width = `${percent}%`;
+                                progressDetail.textContent = `${formatBytes(data.completed)} / ${formatBytes(data.total)}`;
+                            }
+
+                            if (data.status === 'success') {
+                                progressFill.style.width = '100%';
+                                progressText.textContent = 'Download complete!';
+                            }
+                        } catch (e) {
+                            // Ignore JSON parse errors for incomplete chunks
+                        }
+                    }
+                }
+
+                // Refresh model list
+                await checkConnection();
+                
+                setTimeout(() => {
+                    pullModal.classList.remove('active');
+                }, 1500);
+
+            } catch (error) {
+                progressText.textContent = 'Download failed: ' + error.message;
+                modelStatus.className = 'model-status not-installed';
+                modelStatus.textContent = 'Download failed';
+                
+                setTimeout(() => {
+                    pullModal.classList.remove('active');
+                }, 3000);
+            } finally {
+                pullBtn.disabled = false;
+                pullBtn.classList.remove('pulling');
+                pullBtn.textContent = 'Download';
+            }
+        }
+
+        function formatBytes(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+        }
+
+        // File handling
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        async function handleFile(file) {
+            currentFile = file;
+            currentImageBase64 = null;
+            hideError();
+
+            const fileType = getFileType(file);
+            showFilePreview(file, fileType);
+
+            try {
+                if (fileType === 'image') {
+                    const base64 = await fileToBase64(file);
+                    currentImageBase64 = base64.split(',')[1];
+                    currentText = '[Image file - will extract and translate text from image]';
+                } else if (fileType === 'pdf') {
+                    currentText = await extractPdfText(file);
+                } else if (fileType === 'docx') {
+                    currentText = await extractDocxText(file);
+                } else if (fileType === 'txt') {
+                    currentText = await file.text();
+                } else {
+                    showError('Unsupported file type. Please use images, PDF, Word (.docx), or text files.');
+                    return;
+                }
+
+                textInputContainer.style.display = 'block';
+                dropZone.style.display = 'none';
+
+                if (fileType !== 'image') {
+                    textInput.value = currentText;
+                    charCount.textContent = currentText.length;
+                } else {
+                    textInput.value = '';
+                    textInput.placeholder = 'Image loaded - text will be extracted and translated automatically';
+                }
+
+            } catch (error) {
+                showError(`Error processing file: ${error.message}`);
+            }
+        }
+
+        function getFileType(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(ext)) return 'image';
+            if (ext === 'pdf') return 'pdf';
+            if (['docx', 'doc'].includes(ext)) return 'docx';
+            if (ext === 'txt') return 'txt';
+            return 'unknown';
+        }
+
+        function showFilePreview(file, fileType) {
+            const size = formatBytes(file.size);
+            
+            let previewHtml = `
+                <div class="file-preview">
+                    <div class="file-icon ${fileType}">${fileType.toUpperCase()}</div>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${size}</div>
+                    </div>
+                    <button class="remove-file" id="removeFile">
+                        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                    </button>
+                </div>
+            `;
+            
+            if (fileType === 'image') {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewHtml = `<img src="${e.target.result}" class="image-preview" alt="Preview">` + previewHtml;
+                    filePreview.innerHTML = previewHtml;
+                    attachRemoveHandler();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                filePreview.innerHTML = previewHtml;
+                attachRemoveHandler();
+            }
+            
+            filePreview.style.display = 'block';
+        }
+
+        function attachRemoveHandler() {
+            document.getElementById('removeFile').addEventListener('click', () => {
+                currentFile = null;
+                currentText = '';
+                currentImageBase64 = null;
+                filePreview.style.display = 'none';
+                filePreview.innerHTML = '';
+                textInputContainer.style.display = 'none';
+                dropZone.style.display = 'flex';
+                textInput.value = '';
+                charCount.textContent = '0';
+                fileInput.value = '';
+            });
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function extractPdfText(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = '';
+            
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                const pageText = content.items.map(item => item.str).join(' ');
+                text += pageText + '\n\n';
+            }
+            
+            return text.trim();
+        }
+
+        async function extractDocxText(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            return result.value;
+        }
+
+        // Text input handling
+        textInput.addEventListener('input', () => {
+            currentText = textInput.value;
+            charCount.textContent = currentText.length;
+            
+            if (!currentFile && currentText.length > 0) {
+                dropZone.style.display = 'none';
+                textInputContainer.style.display = 'block';
+            }
+        });
+
+        dropZone.addEventListener('dblclick', () => {
+            dropZone.style.display = 'none';
+            textInputContainer.style.display = 'block';
+            textInput.focus();
+        });
+
+        // Language swap
+        swapBtn.addEventListener('click', () => {
+            const temp = sourceLang.value;
+            sourceLang.value = targetLang.value;
+            targetLang.value = temp;
+        });
+
+        // Translation
+        translateBtn.addEventListener('click', async () => {
+            const textToTranslate = currentImageBase64 ? null : (textInput.value || currentText);
+
+            if (!textToTranslate && !currentImageBase64) {
+                showError('Please enter text or upload a file to translate');
+                return;
+            }
+
+            translateBtn.disabled = true;
+            translateBtn.innerHTML = '<span class="loading-spinner"></span>Translating...';
+            outputText.innerHTML = '<span class="output-placeholder">Translating...</span>';
+            hideError();
+
+            try {
+                let result;
+
+                if (currentImageBase64) {
+                    result = await translateWithVision(currentImageBase64);
+                } else {
+                    result = await translateText(textToTranslate);
+                }
+
+                outputText.textContent = result;
+
+                // Show "New Translation" button after successful translation
+                newTranslationBtn.classList.add('visible');
+
+            } catch (error) {
+                showError(`Translation failed: ${error.message}`);
+                outputText.innerHTML = '<span class="output-placeholder">Translation failed</span>';
+                newTranslationBtn.classList.remove('visible');
+            } finally {
+                translateBtn.disabled = false;
+                translateBtn.textContent = 'Translate';
+            }
+        });
+
+        // New Translation button
+        newTranslationBtn.addEventListener('click', () => {
+            // Reset everything
+            currentFile = null;
+            currentText = '';
+            currentImageBase64 = null;
+            filePreview.style.display = 'none';
+            filePreview.innerHTML = '';
+            textInputContainer.style.display = 'none';
+            dropZone.style.display = 'flex';
+            textInput.value = '';
+            charCount.textContent = '0';
+            fileInput.value = '';
+            outputText.innerHTML = '<span class="output-placeholder">Translation will appear here...</span>';
+            newTranslationBtn.classList.remove('visible');
+            hideError();
+        });
+
+        function getLanguageName(code) {
+            const lang = LANGUAGES.find(l => l.code === code);
+            return lang ? lang.name : code;
+        }
+
+        async function translateText(text) {
+            const sourceCode = sourceLang.value;
+            const targetCode = targetLang.value;
+            const sourceName = getLanguageName(sourceCode);
+            const targetName = getLanguageName(targetCode);
+
+            const prompt = `You are a professional ${sourceName} (${sourceCode}) to ${targetName} (${targetCode}) translator. Your goal is to accurately convey the meaning and nuances of the original ${sourceName} text while adhering to ${targetName} grammar, vocabulary, and cultural sensitivities.
+Produce only the ${targetName} translation, without any additional explanations or commentary. Please translate the following ${sourceName} text into ${targetName}:
+
+
+${text}`;
+
+            const response = await fetch(`${ollamaUrl.value}/api/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: modelSelect.value,
+                    prompt: prompt,
+                    stream: false
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.response;
+        }
+
+        async function translateWithVision(imageBase64) {
+            const sourceCode = sourceLang.value;
+            const targetCode = targetLang.value;
+            const sourceName = getLanguageName(sourceCode);
+            const targetName = getLanguageName(targetCode);
+
+            const prompt = `Extract all text from this image and translate it from ${sourceName} (${sourceCode}) to ${targetName} (${targetCode}). Only provide the ${targetName} translation without any explanations.`;
+
+            const response = await fetch(`${ollamaUrl.value}/api/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: modelSelect.value,
+                    messages: [{
+                        role: 'user',
+                        content: prompt,
+                        images: [imageBase64]
+                    }],
+                    stream: false
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return data.message.content;
+        }
+
+        // Copy functionality
+        copyBtn.addEventListener('click', () => {
+            const text = outputText.textContent;
+            if (text && !text.includes('Translation will appear') && !text.includes('Translation failed')) {
+                navigator.clipboard.writeText(text);
+                copyBtn.innerHTML = '<svg viewBox="0 0 24 24"><path fill="#34a853" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>';
+                }, 2000);
+            }
+        });
+
+        // Error handling
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function hideError() {
+            errorMessage.style.display = 'none';
+        }
+
+        // Event listeners
+        ollamaUrl.addEventListener('change', checkConnection);
+        modelSelect.addEventListener('change', checkModelStatus);
+        pullBtn.addEventListener('click', pullModel);
+
+        // Initialize
+        initLanguages();
+        checkConnection();
+    </script>
+</body>
+</html>
