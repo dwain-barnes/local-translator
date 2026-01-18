@@ -4,6 +4,9 @@
 ![Ollama](https://img.shields.io/badge/Ollama-Powered-green)
 ![Languages](https://img.shields.io/badge/Languages-55-orange)
 
+
+**![main](main.png)**
+
 A private, local AI-powered translation application that runs entirely on your computer. Translate text, documents, and images across 55 languages without sending any data to external servers.
 
 ## ✨ Features
