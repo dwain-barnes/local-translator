@@ -34,11 +34,17 @@ A private, local AI-powered translation application that runs entirely on your c
    Or use smaller models:
    - `ollama pull translategemma` (4B - 3.3GB)
    - `ollama pull translategemma:12b` (8.1GB)
+3. **Allow the page to talk to Ollama** - if you open the HTML file straight from disk (a `file://` address), Ollama's default CORS settings will block it. Set `OLLAMA_ORIGINS` and restart Ollama:
+   - **Windows**: run `setx OLLAMA_ORIGINS "*"` then restart the Ollama app
+   - **macOS**: run `launchctl setenv OLLAMA_ORIGINS "*"` then restart Ollama
+   - **Linux**: start Ollama with `OLLAMA_ORIGINS="*" ollama serve`
+
+   Don't want to change Ollama's settings? Serving the file from a local webserver works too: run `python -m http.server` in the folder containing the file and open `http://localhost:8000/local-translator.html`.
 
 ### Usage
 
 1. **Download** the `local-translator.html` file
-2. **Open** it in your web browser (Chrome, Firefox, Edge, etc.)
+2. **Open** it in your web browser (Chrome, Firefox, Edge, etc.) - if the status bar says it can't connect, see Prerequisites step 3 above
 3. **Upload** a file or type text directly
 4. **Select** source and target languages
 5. **Click** "Translate"
@@ -103,9 +109,13 @@ The application auto-detects Ollama running on `http://localhost:11434`. If you'
 ## 🚨 Troubleshooting
 
 ### "Cannot connect to Ollama. Is it running?"
+- **Most common cause**: the page was opened directly from disk (`file://`), so the browser blocks requests to Ollama (CORS). Set `OLLAMA_ORIGINS="*"` and restart Ollama - see Prerequisites step 3 above
 - Make sure Ollama is installed and running
 - Check that Ollama is accessible at `http://localhost:11434`
 - Try running `ollama serve` in your terminal
+
+### PDF Uploads But Nothing Translates
+Scanned PDFs (photocopies, faxes, phone scans) usually have no text layer, so there is no text to extract. The app detects this and translates each page as an image instead, using the model's vision support - the input box will say "Scanned PDF detected". To keep memory use in check, only the first 20 pages of a scanned PDF are translated.
 
 ### Model Not Installed
 - The application will show a "Download" button

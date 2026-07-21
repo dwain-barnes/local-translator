@@ -539,6 +539,84 @@
             display: inline-block;
         }
 
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-count {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--google-grey-500);
+        }
+
+        .history-toggle-btn, .history-clear-btn {
+            background: white;
+            color: var(--google-blue);
+            border: 1px solid var(--google-grey-300);
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .history-toggle-btn:hover, .history-clear-btn:hover {
+            background: #e8f0fe;
+        }
+
+        .history-clear-btn {
+            color: var(--google-red, #ea4335);
+        }
+
+        .history-list {
+            margin-top: 16px;
+        }
+
+        .history-item {
+            border: 1px solid var(--google-grey-200);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .history-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--google-grey-500);
+            margin-bottom: 6px;
+        }
+
+        .history-snippet {
+            font-size: 14px;
+            color: var(--google-grey-900);
+            white-space: pre-wrap;
+            max-height: 72px;
+            overflow: hidden;
+        }
+
+        .history-actions button {
+            background: none;
+            border: none;
+            color: var(--google-blue);
+            font-size: 12px;
+            cursor: pointer;
+            padding: 2px 6px;
+        }
+
+        .history-actions button:hover {
+            text-decoration: underline;
+        }
+
+        .history-empty {
+            color: var(--google-grey-500);
+            font-style: italic;
+            font-size: 14px;
+        }
+
         footer {
             text-align: center;
             padding: 24px;
@@ -672,9 +750,14 @@
                 <div class="output-section">
                     <div class="output-header">
                         <span class="output-label">Translation</span>
-                        <button class="copy-btn" id="copyBtn" title="Copy translation">
-                            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-                        </button>
+                        <div>
+                            <button class="copy-btn" id="downloadBtn" title="Download translation as .txt">
+                                <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            </button>
+                            <button class="copy-btn" id="copyBtn" title="Copy translation">
+                                <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                            </button>
+                        </div>
                     </div>
                     <div id="outputText" class="output-text">
                         <span class="output-placeholder">Translation will appear here...</span>
@@ -712,6 +795,17 @@
                 <span class="setting-label">Ollama URL</span>
                 <input type="text" class="setting-input" id="ollamaUrl" value="http://localhost:11434">
             </div>
+        </div>
+
+        <div class="settings" id="historySection">
+            <div class="history-header">
+                <h2 class="settings-title" style="margin-bottom:0">History <span id="historyCount" class="history-count"></span></h2>
+                <div>
+                    <button class="history-toggle-btn" id="historyToggleBtn">Show</button>
+                    <button class="history-clear-btn" id="historyClearBtn" style="display:none">Clear all</button>
+                </div>
+            </div>
+            <div id="historyList" class="history-list" style="display:none"></div>
         </div>
 
         <footer>
@@ -802,6 +896,8 @@
         let currentFile = null;
         let currentText = '';
         let currentImageBase64 = null;
+        let currentPdfImages = null;
+        let lastDetectedLangName = null;
         let installedModels = [];
 
         // DOM Elements
@@ -832,6 +928,11 @@
 
         // Initialize language dropdowns
         function initLanguages() {
+            const autoOption = document.createElement('option');
+            autoOption.value = 'auto';
+            autoOption.textContent = 'Auto-detect';
+            sourceLang.appendChild(autoOption);
+
             LANGUAGES.forEach(lang => {
                 const sourceOption = document.createElement('option');
                 sourceOption.value = lang.code;
@@ -862,6 +963,7 @@
 
                     statusDot.className = 'status-dot connected';
                     statusText.textContent = 'Connected to Ollama';
+                    hideError();
 
                     // Auto-select first installed translategemma model
                     const installedTranslateGemma = installedModels.find(m =>
@@ -878,6 +980,11 @@
             } catch (error) {
                 statusDot.className = 'status-dot disconnected';
                 statusText.textContent = 'Cannot connect to Ollama. Is it running?';
+                if (window.location.protocol === 'file:') {
+                    showError('Cannot reach Ollama. If Ollama IS running, this is almost certainly a CORS issue: pages opened directly from disk (file://) are blocked by Ollama\'s default security settings. Fix: set the environment variable OLLAMA_ORIGINS="*" and restart Ollama (Windows: setx OLLAMA_ORIGINS "*" then restart the Ollama app · macOS: launchctl setenv OLLAMA_ORIGINS "*" then restart Ollama · Linux: OLLAMA_ORIGINS="*" ollama serve). Alternatively, serve this file from a local webserver, e.g. run "python -m http.server" in this folder and open http://localhost:8000/local-translator.html');
+                } else {
+                    showError('Cannot reach Ollama at ' + ollamaUrl.value + '. Check that Ollama is running (try "ollama serve" in a terminal) and that the URL in Settings is correct. If Ollama runs on another machine or port, you may also need to set OLLAMA_ORIGINS to allow this page\'s origin.');
+                }
                 translateBtn.disabled = true;
                 modelStatus.className = 'model-status not-installed';
                 modelStatus.textContent = 'Offline';
@@ -1028,6 +1135,7 @@
         async function handleFile(file) {
             currentFile = file;
             currentImageBase64 = null;
+            currentPdfImages = null;
             hideError();
 
             const fileType = getFileType(file);
@@ -1039,7 +1147,22 @@
                     currentImageBase64 = base64.split(',')[1];
                     currentText = '[Image file - will extract and translate text from image]';
                 } else if (fileType === 'pdf') {
+                    if (typeof pdfjsLib === 'undefined') {
+                        showError('The PDF library (pdf.js) failed to load. An internet connection is required the first time the page loads its libraries from the CDN.');
+                        return;
+                    }
+                    currentPdfImages = null;
                     currentText = await extractPdfText(file);
+                    if (!currentText || currentText.replace(/\s/g, '').length < 20) {
+                        // Likely a scanned/image-only PDF with no text layer.
+                        // Fall back to rendering pages as images for vision translation.
+                        currentText = '';
+                        currentPdfImages = await renderPdfPagesToImages(file);
+                        if (!currentPdfImages || currentPdfImages.length === 0) {
+                            showError('No text could be extracted from this PDF and its pages could not be rendered. The file may be corrupted or password-protected.');
+                            return;
+                        }
+                    }
                 } else if (fileType === 'docx') {
                     currentText = await extractDocxText(file);
                 } else if (fileType === 'txt') {
@@ -1052,12 +1175,15 @@
                 textInputContainer.style.display = 'block';
                 dropZone.style.display = 'none';
 
-                if (fileType !== 'image') {
-                    textInput.value = currentText;
-                    charCount.textContent = currentText.length;
-                } else {
+                if (fileType === 'image') {
                     textInput.value = '';
                     textInput.placeholder = 'Image loaded - text will be extracted and translated automatically';
+                } else if (fileType === 'pdf' && currentPdfImages) {
+                    textInput.value = '';
+                    textInput.placeholder = `Scanned PDF detected (no text layer) - ${currentPdfImages.length} page(s) will be translated using vision`;
+                } else {
+                    textInput.value = currentText;
+                    charCount.textContent = currentText.length;
                 }
 
             } catch (error) {
@@ -1111,6 +1237,7 @@
                 currentFile = null;
                 currentText = '';
                 currentImageBase64 = null;
+                currentPdfImages = null;
                 filePreview.style.display = 'none';
                 filePreview.innerHTML = '';
                 textInputContainer.style.display = 'none';
@@ -1145,6 +1272,33 @@
             return text.trim();
         }
 
+        // Render PDF pages to base64 PNG images (for scanned PDFs with no text layer)
+        async function renderPdfPagesToImages(file) {
+            const MAX_PAGES = 20; // safety cap
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const numPages = Math.min(pdf.numPages, MAX_PAGES);
+            const images = [];
+
+            for (let i = 1; i <= numPages; i++) {
+                const page = await pdf.getPage(i);
+                const viewport = page.getViewport({ scale: 2 });
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+                await page.render({ canvasContext: ctx, viewport }).promise;
+                // strip the data URL prefix for the Ollama API
+                images.push(canvas.toDataURL('image/png').split(',')[1]);
+            }
+
+            if (pdf.numPages > MAX_PAGES) {
+                showError(`Note: this PDF has ${pdf.numPages} pages; only the first ${MAX_PAGES} will be translated.`);
+            }
+
+            return images;
+        }
+
         async function extractDocxText(file) {
             const arrayBuffer = await file.arrayBuffer();
             const result = await mammoth.extractRawText({ arrayBuffer });
@@ -1170,6 +1324,14 @@
 
         // Language swap
         swapBtn.addEventListener('click', () => {
+            if (sourceLang.value === 'auto') {
+                // Resolve auto to the last detected language if we have one
+                const detected = LANGUAGES.find(l => l.name.toLowerCase() === (lastDetectedLangName || '').toLowerCase());
+                if (!detected) return; // nothing sensible to swap yet
+                sourceLang.value = targetLang.value;
+                targetLang.value = detected.code;
+                return;
+            }
             const temp = sourceLang.value;
             sourceLang.value = targetLang.value;
             targetLang.value = temp;
@@ -1177,9 +1339,9 @@
 
         // Translation
         translateBtn.addEventListener('click', async () => {
-            const textToTranslate = currentImageBase64 ? null : (textInput.value || currentText);
+            const textToTranslate = (currentImageBase64 || currentPdfImages) ? null : (textInput.value || currentText);
 
-            if (!textToTranslate && !currentImageBase64) {
+            if (!textToTranslate && !currentImageBase64 && !currentPdfImages) {
                 showError('Please enter text or upload a file to translate');
                 return;
             }
@@ -1189,16 +1351,55 @@
             outputText.innerHTML = '<span class="output-placeholder">Translating...</span>';
             hideError();
 
+            let streamStarted = false;
+            const appendToken = (token) => {
+                if (!streamStarted) {
+                    outputText.textContent = '';
+                    streamStarted = true;
+                }
+                outputText.textContent += token;
+            };
+
             try {
                 let result;
 
                 if (currentImageBase64) {
-                    result = await translateWithVision(currentImageBase64);
+                    result = await translateWithVision(currentImageBase64, appendToken);
+                } else if (currentPdfImages) {
+                    result = '';
+                    for (let i = 0; i < currentPdfImages.length; i++) {
+                        translateBtn.innerHTML = `<span class="loading-spinner"></span>Page ${i + 1}/${currentPdfImages.length}...`;
+                        if (i > 0) appendToken('\n\n');
+                        result += (i > 0 ? '\n\n' : '') + await translateWithVision(currentPdfImages[i], appendToken);
+                    }
                 } else {
-                    result = await translateText(textToTranslate);
+                    // Auto-detect source language if requested
+                    if (sourceLang.value === 'auto') {
+                        translateBtn.innerHTML = '<span class="loading-spinner"></span>Detecting language...';
+                        outputText.innerHTML = '<span class="output-placeholder">Detecting source language...</span>';
+                        lastDetectedLangName = await detectLanguage(textToTranslate);
+                        if (lastDetectedLangName) {
+                            statusText.textContent = `Connected to Ollama · Detected: ${lastDetectedLangName}`;
+                        }
+                    }
+
+                    const chunks = chunkText(textToTranslate);
+                    result = '';
+                    for (let i = 0; i < chunks.length; i++) {
+                        if (chunks.length > 1) {
+                            translateBtn.innerHTML = `<span class="loading-spinner"></span>Part ${i + 1}/${chunks.length}...`;
+                        } else {
+                            translateBtn.innerHTML = '<span class="loading-spinner"></span>Translating...';
+                        }
+                        if (i > 0) appendToken('\n\n');
+                        result += (i > 0 ? '\n\n' : '') + await translateText(chunks[i], appendToken);
+                    }
                 }
 
                 outputText.textContent = result;
+
+                // Save to history
+                saveHistoryEntry(textToTranslate, result);
 
                 // Show "New Translation" button after successful translation
                 newTranslationBtn.classList.add('visible');
@@ -1219,6 +1420,7 @@
             currentFile = null;
             currentText = '';
             currentImageBase64 = null;
+            currentPdfImages = null;
             filePreview.style.display = 'none';
             filePreview.innerHTML = '';
             textInputContainer.style.display = 'none';
@@ -1236,17 +1438,43 @@
             return lang ? lang.name : code;
         }
 
-        async function translateText(text) {
-            const sourceCode = sourceLang.value;
-            const targetCode = targetLang.value;
-            const sourceName = getLanguageName(sourceCode);
-            const targetName = getLanguageName(targetCode);
+        // Read an NDJSON streaming response from Ollama, calling onToken for each token
+        async function readOllamaStream(response, extractToken, onToken) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let full = '';
 
-            const prompt = `You are a professional ${sourceName} (${sourceCode}) to ${targetName} (${targetCode}) translator. Your goal is to accurately convey the meaning and nuances of the original ${sourceName} text while adhering to ${targetName} grammar, vocabulary, and cultural sensitivities.
-Produce only the ${targetName} translation, without any additional explanations or commentary. Please translate the following ${sourceName} text into ${targetName}:
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop(); // keep incomplete line for next chunk
 
+                for (const line of lines) {
+                    if (!line.trim()) continue;
+                    let data;
+                    try {
+                        data = JSON.parse(line);
+                    } catch (e) {
+                        continue; // incomplete/malformed chunk
+                    }
+                    if (data.error) throw new Error(data.error);
+                    const token = extractToken(data);
+                    if (token) {
+                        full += token;
+                        if (onToken) onToken(token);
+                    }
+                }
+            }
+            return full;
+        }
 
-${text}`;
+        // Ask the model to identify the source language (used when "Auto-detect" is selected)
+        async function detectLanguage(text) {
+            const sample = text.slice(0, 600);
+            const prompt = `Identify the language of the following text. Respond with ONLY the English name of the language (e.g. "French", "Welsh", "Japanese") and nothing else.\n\n${sample}`;
 
             const response = await fetch(`${ollamaUrl.value}/api/generate`, {
                 method: 'POST',
@@ -1259,14 +1487,81 @@ ${text}`;
             });
 
             if (!response.ok) {
-                throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+                throw new Error(`Language detection failed: ${response.status} ${response.statusText}`);
             }
 
             const data = await response.json();
-            return data.response;
+            const name = (data.response || '').trim().split('\n')[0].replace(/[^A-Za-z ()\-]/g, '').trim();
+            return name || null;
         }
 
-        async function translateWithVision(imageBase64) {
+        // Split long text into translation-sized chunks on paragraph/sentence boundaries
+        function chunkText(text, maxLen = 3000) {
+            if (text.length <= maxLen) return [text];
+
+            const chunks = [];
+            let current = '';
+            const paragraphs = text.split(/\n\s*\n/);
+
+            const push = () => {
+                if (current.trim()) chunks.push(current.trim());
+                current = '';
+            };
+
+            for (const para of paragraphs) {
+                if (para.length > maxLen) {
+                    // Paragraph itself too long - split on sentences
+                    const sentences = para.match(/[^.!?]+[.!?]+["')\]]*\s*|.+$/g) || [para];
+                    for (const sentence of sentences) {
+                        if ((current + sentence).length > maxLen) push();
+                        current += sentence;
+                    }
+                    current += '\n\n';
+                } else {
+                    if ((current + para).length > maxLen) push();
+                    current += para + '\n\n';
+                }
+            }
+            push();
+            return chunks;
+        }
+
+        async function translateText(text, onToken) {
+            const sourceCode = sourceLang.value;
+            const targetCode = targetLang.value;
+            const targetName = getLanguageName(targetCode);
+
+            let sourceLabel;
+            if (sourceCode === 'auto') {
+                sourceLabel = lastDetectedLangName || 'the source language';
+            } else {
+                sourceLabel = `${getLanguageName(sourceCode)} (${sourceCode})`;
+            }
+
+            const prompt = `You are a professional ${sourceLabel} to ${targetName} (${targetCode}) translator. Your goal is to accurately convey the meaning and nuances of the original text while adhering to ${targetName} grammar, vocabulary, and cultural sensitivities.
+Produce only the ${targetName} translation, without any additional explanations or commentary. Please translate the following text into ${targetName}:
+
+
+${text}`;
+
+            const response = await fetch(`${ollamaUrl.value}/api/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: modelSelect.value,
+                    prompt: prompt,
+                    stream: true
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+            }
+
+            return readOllamaStream(response, data => data.response, onToken);
+        }
+
+        async function translateWithVision(imageBase64, onToken) {
             const sourceCode = sourceLang.value;
             const targetCode = targetLang.value;
             const sourceName = getLanguageName(sourceCode);
@@ -1284,7 +1579,7 @@ ${text}`;
                         content: prompt,
                         images: [imageBase64]
                     }],
-                    stream: false
+                    stream: true
                 })
             });
 
@@ -1292,9 +1587,144 @@ ${text}`;
                 throw new Error(`API request failed: ${response.status} ${response.statusText}`);
             }
 
-            const data = await response.json();
-            return data.message.content;
+            return readOllamaStream(response, data => data.message && data.message.content, onToken);
         }
+
+        // Translation history (stored locally in this browser only)
+        const HISTORY_KEY = 'local-translator-history';
+        const HISTORY_MAX = 50;
+        let translationHistory = [];
+        try {
+            translationHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            if (!Array.isArray(translationHistory)) translationHistory = [];
+        } catch (e) {
+            translationHistory = [];
+        }
+
+        const historyList = document.getElementById('historyList');
+        const historyCount = document.getElementById('historyCount');
+        const historyToggleBtn = document.getElementById('historyToggleBtn');
+        const historyClearBtn = document.getElementById('historyClearBtn');
+
+        function persistHistory() {
+            try {
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(translationHistory));
+            } catch (e) {
+                // localStorage full or unavailable - history just won't persist
+            }
+        }
+
+        function saveHistoryEntry(input, output) {
+            if (!output || !output.trim()) return;
+            const srcName = sourceLang.value === 'auto'
+                ? (lastDetectedLangName ? `${lastDetectedLangName} (auto)` : 'Auto')
+                : getLanguageName(sourceLang.value);
+            translationHistory.unshift({
+                ts: Date.now(),
+                src: srcName,
+                tgt: getLanguageName(targetLang.value),
+                input: input ? input.slice(0, 3000) : '[image / scanned PDF]',
+                output: output
+            });
+            translationHistory = translationHistory.slice(0, HISTORY_MAX);
+            persistHistory();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyCount.textContent = translationHistory.length ? `(${translationHistory.length})` : '';
+            historyClearBtn.style.display =
+                (translationHistory.length && historyList.style.display !== 'none') ? 'inline-block' : 'none';
+
+            if (!translationHistory.length) {
+                historyList.innerHTML = '<p class="history-empty">No translations yet. Your history is stored only in this browser.</p>';
+                return;
+            }
+
+            historyList.innerHTML = '';
+            translationHistory.forEach((entry, index) => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+
+                const meta = document.createElement('div');
+                meta.className = 'history-meta';
+                const when = new Date(entry.ts).toLocaleString();
+                const label = document.createElement('span');
+                label.textContent = `${entry.src} → ${entry.tgt} · ${when}`;
+                const actions = document.createElement('span');
+                actions.className = 'history-actions';
+
+                const copyB = document.createElement('button');
+                copyB.textContent = 'Copy';
+                copyB.addEventListener('click', () => {
+                    navigator.clipboard.writeText(entry.output);
+                    copyB.textContent = 'Copied!';
+                    setTimeout(() => { copyB.textContent = 'Copy'; }, 1500);
+                });
+
+                const loadB = document.createElement('button');
+                loadB.textContent = 'View';
+                loadB.addEventListener('click', () => {
+                    outputText.textContent = entry.output;
+                    newTranslationBtn.classList.add('visible');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+
+                const delB = document.createElement('button');
+                delB.textContent = 'Delete';
+                delB.addEventListener('click', () => {
+                    translationHistory.splice(index, 1);
+                    persistHistory();
+                    renderHistory();
+                });
+
+                actions.appendChild(copyB);
+                actions.appendChild(loadB);
+                actions.appendChild(delB);
+                meta.appendChild(label);
+                meta.appendChild(actions);
+
+                const snippet = document.createElement('div');
+                snippet.className = 'history-snippet';
+                snippet.textContent = entry.output.slice(0, 300) + (entry.output.length > 300 ? '…' : '');
+
+                item.appendChild(meta);
+                item.appendChild(snippet);
+                historyList.appendChild(item);
+            });
+        }
+
+        historyToggleBtn.addEventListener('click', () => {
+            const hidden = historyList.style.display === 'none';
+            historyList.style.display = hidden ? 'block' : 'none';
+            historyToggleBtn.textContent = hidden ? 'Hide' : 'Show';
+            renderHistory();
+        });
+
+        historyClearBtn.addEventListener('click', () => {
+            if (!confirm('Clear all translation history? This cannot be undone.')) return;
+            translationHistory = [];
+            persistHistory();
+            renderHistory();
+        });
+
+        // Download translation as .txt
+        const downloadBtn = document.getElementById('downloadBtn');
+        downloadBtn.addEventListener('click', () => {
+            const text = outputText.textContent;
+            if (!text || text.includes('Translation will appear') || text.includes('Translation failed') || text.includes('Translating')) return;
+
+            const tgt = getLanguageName(targetLang.value).toLowerCase().replace(/[^a-z]/g, '-');
+            const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `translation-${tgt}-${stamp}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        });
 
         // Copy functionality
         copyBtn.addEventListener('click', () => {
@@ -1325,6 +1755,7 @@ ${text}`;
 
         // Initialize
         initLanguages();
+        renderHistory();
         checkConnection();
     </script>
 </body>
