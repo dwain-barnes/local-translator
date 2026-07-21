@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local Translator - 55 Languages | Powered by translateGemma</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <meta name="theme-color" content="#eef0f4" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#191b21" media="(prefers-color-scheme: dark)">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%233c5a7d'/%3E%3Ctext x='16' y='20' font-family='Georgia,serif' font-size='16' fill='white' text-anchor='middle'%3Ecy%3C/text%3E%3Crect x='9' y='24' width='14' height='2.5' rx='1.25' fill='%23c8971f'/%3E%3C/svg%3E">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" integrity="sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
     <style>
         * {
             margin: 0;
@@ -16,26 +16,71 @@
             box-sizing: border-box;
         }
 
+        /* Slate palette - light by default, dark via prefers-color-scheme below */
         :root {
-            --google-blue: #1a73e8;
-            --google-blue-hover: #1557b0;
-            --google-grey-100: #f8f9fa;
-            --google-grey-200: #e8eaed;
-            --google-grey-300: #dadce0;
-            --google-grey-500: #80868b;
-            --google-grey-700: #5f6368;
-            --google-grey-900: #202124;
-            --google-green: #34a853;
-            --google-red: #ea4335;
-            --google-yellow: #fbbc04;
-            --shadow-1: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
-            --shadow-2: 0 1px 3px 0 rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15);
+            color-scheme: light dark;
+            --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --serif: 'Charter', 'Bitstream Charter', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+
+            --paper: #eef0f4;
+            --card: #ffffff;
+            --card-inset: #f5f6f9;
+            --ink: #23262e;
+            --ink-soft: #565c6b;
+            --ink-faint: #82889a;
+            --line: #dfe2ea;
+
+            --slate: #3c5a7d;        /* primary button fill */
+            --slate-deep: #2e4763;   /* primary hover */
+            --slate-tint: #e8eef5;   /* tinted hover backgrounds */
+            --accent: #3c5a7d;       /* links, icons, accent text */
+            --gold: #c8971f;
+
+            --ok: #256d4f;
+            --ok-tint: #e0f0e8;
+            --err: #a83a32;
+            --err-tint: #f8e7e5;
+            --warn: #93600a;
+            --warn-tint: #faf0d8;
+
+            --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23565c6b' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+            --shadow-1: 0 1px 2px rgba(35,38,46,.06), 0 4px 16px rgba(35,38,46,.07);
+            --shadow-2: 0 4px 12px rgba(35,38,46,.14), 0 12px 40px rgba(35,38,46,.18);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --paper: #191b21;
+                --card: #22252d;
+                --card-inset: #292c35;
+                --ink: #e6e8ee;
+                --ink-soft: #a9aebc;
+                --ink-faint: #7d8394;
+                --line: #363a45;
+
+                --slate: #46688f;
+                --slate-deep: #54779f;
+                --slate-tint: #2b3646;
+                --accent: #8fb0d3;
+                --gold: #d4a637;
+
+                --ok: #5fb28d;
+                --ok-tint: #24382f;
+                --err: #e08d85;
+                --err-tint: #432b28;
+                --warn: #d3a24b;
+                --warn-tint: #3d3322;
+
+                --arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a9aebc' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+                --shadow-1: 0 1px 2px rgba(0,0,0,.4), 0 4px 16px rgba(0,0,0,.35);
+                --shadow-2: 0 4px 12px rgba(0,0,0,.5), 0 16px 48px rgba(0,0,0,.55);
+            }
         }
 
         body {
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--google-grey-100);
-            color: var(--google-grey-900);
+            font-family: var(--sans);
+            background: var(--paper);
+            color: var(--ink);
             min-height: 100vh;
             line-height: 1.5;
         }
@@ -43,34 +88,50 @@
         .container {
             max-width: 1000px;
             margin: 0 auto;
-            padding: 24px;
+            padding: 28px 24px;
         }
 
         header {
             text-align: center;
-            margin-bottom: 32px;
+            margin: 16px 0 36px;
+        }
+
+        .logo-eyebrow {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 6px;
         }
 
         .logo {
-            font-family: 'Google Sans', sans-serif;
-            font-size: 28px;
+            font-family: var(--serif);
+            font-size: 38px;
             font-weight: 500;
-            color: var(--google-grey-900);
-            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+            color: var(--ink);
         }
 
-        .logo span {
-            color: var(--google-blue);
+        .logo::after {
+            content: '';
+            display: block;
+            width: 56px;
+            height: 3px;
+            background: var(--gold);
+            border-radius: 2px;
+            margin: 14px auto 12px;
         }
 
         .tagline {
-            color: var(--google-grey-700);
-            font-size: 14px;
+            color: var(--ink-soft);
+            font-size: 15px;
         }
 
         .main-card {
-            background: white;
-            border-radius: 8px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
             box-shadow: var(--shadow-1);
             overflow: hidden;
         }
@@ -78,32 +139,37 @@
         .language-bar {
             display: flex;
             align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--google-grey-200);
-            background: var(--google-grey-100);
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--line);
             gap: 12px;
         }
 
         .language-select {
             flex: 1;
             padding: 10px 12px;
+            font-family: inherit;
             font-size: 14px;
             font-weight: 500;
-            border: 1px solid var(--google-grey-300);
-            border-radius: 4px;
-            background: white;
-            color: var(--google-grey-900);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--ink);
             cursor: pointer;
             appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235f6368' d='M2 4l4 4 4-4z'/%3E%3C/svg%3E");
+            background-image: var(--arrow);
             background-repeat: no-repeat;
             background-position: right 12px center;
             padding-right: 32px;
+            transition: border-color 0.15s;
+        }
+
+        .language-select:hover {
+            border-color: var(--ink-faint);
         }
 
         .language-select:focus {
             outline: none;
-            border-color: var(--google-blue);
+            border-color: var(--accent);
         }
 
         .swap-btn {
@@ -115,42 +181,42 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: background 0.15s;
             flex-shrink: 0;
         }
 
         .swap-btn:hover {
-            background: var(--google-grey-200);
+            background: var(--slate-tint);
         }
 
         .swap-btn svg {
             width: 20px;
             height: 20px;
-            fill: var(--google-grey-700);
+            fill: var(--ink-soft);
         }
 
         .translation-area {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            min-height: 300px;
+            min-height: 320px;
         }
 
         .input-section, .output-section {
-            padding: 16px;
+            padding: 18px;
         }
 
         .input-section {
-            border-right: 1px solid var(--google-grey-200);
+            border-right: 1px solid var(--line);
         }
 
         .drop-zone {
-            border: 2px dashed var(--google-grey-300);
-            border-radius: 8px;
+            border: 1.5px dashed var(--line);
+            border-radius: 12px;
             padding: 40px 24px;
             text-align: center;
-            transition: all 0.2s;
+            transition: border-color 0.15s, background 0.15s;
             cursor: pointer;
-            min-height: 200px;
+            min-height: 220px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -158,60 +224,84 @@
         }
 
         .drop-zone:hover, .drop-zone.dragover {
-            border-color: var(--google-blue);
-            background: #e8f0fe;
+            border-color: var(--accent);
+            background: var(--slate-tint);
         }
 
         .drop-zone svg {
-            width: 48px;
-            height: 48px;
-            fill: var(--google-grey-500);
-            margin-bottom: 16px;
+            width: 44px;
+            height: 44px;
+            fill: var(--ink-faint);
+            margin-bottom: 14px;
         }
 
         .drop-zone.dragover svg {
-            fill: var(--google-blue);
+            fill: var(--accent);
         }
 
         .drop-zone-text {
             font-size: 14px;
-            color: var(--google-grey-700);
-            margin-bottom: 8px;
+            color: var(--ink-soft);
+            margin-bottom: 6px;
         }
 
         .drop-zone-hint {
             font-size: 12px;
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
+        }
+
+        .type-instead {
+            margin-top: 16px;
+            padding: 6px 12px;
+            background: none;
+            border: none;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            color: var(--accent);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            cursor: pointer;
+        }
+
+        .type-instead:hover {
+            background: var(--card);
         }
 
         .file-input {
             display: none;
         }
 
+        /* The two translation panes read like set type */
         .text-input {
             width: 100%;
-            min-height: 200px;
+            min-height: 220px;
             border: none;
             resize: none;
-            font-family: inherit;
-            font-size: 16px;
-            color: var(--google-grey-900);
+            background: transparent;
+            font-family: var(--serif);
+            font-size: 17px;
+            line-height: 1.65;
+            color: var(--ink);
+            caret-color: var(--accent);
             outline: none;
         }
 
         .text-input::placeholder {
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
         }
 
         .output-text {
-            min-height: 200px;
-            font-size: 16px;
-            color: var(--google-grey-900);
+            min-height: 220px;
+            font-family: var(--serif);
+            font-size: 17px;
+            line-height: 1.65;
+            color: var(--ink);
             white-space: pre-wrap;
         }
 
         .output-placeholder {
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
             font-style: italic;
         }
 
@@ -219,28 +309,28 @@
             display: flex;
             align-items: center;
             padding: 12px;
-            background: var(--google-grey-100);
-            border-radius: 8px;
+            background: var(--card-inset);
+            border-radius: 10px;
             margin-bottom: 16px;
         }
 
         .file-icon {
             width: 40px;
             height: 40px;
-            border-radius: 4px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 12px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
             color: white;
         }
 
-        .file-icon.pdf { background: #ea4335; }
-        .file-icon.docx { background: #4285f4; }
-        .file-icon.image { background: #34a853; }
-        .file-icon.txt { background: #80868b; }
+        .file-icon.pdf { background: #b0524a; }
+        .file-icon.docx { background: #4a6c94; }
+        .file-icon.image { background: #3d8a68; }
+        .file-icon.txt { background: #7d8394; }
 
         .file-info {
             flex: 1;
@@ -249,12 +339,12 @@
         .file-name {
             font-size: 14px;
             font-weight: 500;
-            color: var(--google-grey-900);
+            color: var(--ink);
         }
 
         .file-size {
             font-size: 12px;
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
         }
 
         .remove-file {
@@ -263,54 +353,57 @@
             border: none;
             cursor: pointer;
             border-radius: 50%;
-            transition: background 0.2s;
+            transition: background 0.15s;
         }
 
         .remove-file:hover {
-            background: var(--google-grey-200);
+            background: var(--slate-tint);
         }
 
         .remove-file svg {
             width: 20px;
             height: 20px;
-            fill: var(--google-grey-500);
+            fill: var(--ink-faint);
         }
 
         .actions {
-            padding: 16px;
-            border-top: 1px solid var(--google-grey-200);
+            padding: 14px 16px;
+            border-top: 1px solid var(--line);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .translate-btn {
-            background: var(--google-blue);
+            background: var(--slate);
             color: white;
             border: none;
-            padding: 10px 24px;
+            padding: 10px 26px;
+            font-family: inherit;
             font-size: 14px;
-            font-weight: 500;
-            border-radius: 4px;
+            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s, box-shadow 0.2s;
+            transition: background 0.15s, box-shadow 0.15s;
         }
 
         .translate-btn:hover {
-            background: var(--google-blue-hover);
+            background: var(--slate-deep);
             box-shadow: var(--shadow-1);
         }
 
         .translate-btn:disabled {
-            background: var(--google-grey-300);
+            background: var(--line);
+            color: var(--ink-faint);
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         .status {
             display: flex;
             align-items: center;
             font-size: 13px;
-            color: var(--google-grey-700);
+            color: var(--ink-soft);
         }
 
         .status-dot {
@@ -318,11 +411,12 @@
             height: 8px;
             border-radius: 50%;
             margin-right: 8px;
+            flex-shrink: 0;
         }
 
-        .status-dot.connected { background: var(--google-green); }
-        .status-dot.disconnected { background: var(--google-red); }
-        .status-dot.loading { background: var(--google-yellow); animation: pulse 1s infinite; }
+        .status-dot.connected { background: var(--ok); }
+        .status-dot.disconnected { background: var(--err); }
+        .status-dot.loading { background: var(--warn); animation: pulse 1s infinite; }
 
         @keyframes pulse {
             0%, 100% { opacity: 1; }
@@ -331,18 +425,19 @@
 
         .settings {
             margin-top: 24px;
-            background: white;
-            border-radius: 8px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
             box-shadow: var(--shadow-1);
-            padding: 16px;
+            padding: 20px;
         }
 
         .settings-title {
-            font-family: 'Google Sans', sans-serif;
-            font-size: 16px;
+            font-family: var(--serif);
+            font-size: 19px;
             font-weight: 500;
             margin-bottom: 16px;
-            color: var(--google-grey-900);
+            color: var(--ink);
         }
 
         .setting-row {
@@ -350,7 +445,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 12px 0;
-            border-bottom: 1px solid var(--google-grey-200);
+            border-bottom: 1px solid var(--line);
         }
 
         .setting-row:last-child {
@@ -359,7 +454,7 @@
 
         .setting-label {
             font-size: 14px;
-            color: var(--google-grey-700);
+            color: var(--ink-soft);
         }
 
         .setting-control {
@@ -370,47 +465,52 @@
 
         .setting-select {
             padding: 8px 12px;
+            font-family: inherit;
             font-size: 14px;
-            border: 1px solid var(--google-grey-300);
-            border-radius: 4px;
-            background: white;
-            color: var(--google-grey-900);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--ink);
             cursor: pointer;
         }
 
         .setting-select:focus {
             outline: none;
-            border-color: var(--google-blue);
+            border-color: var(--accent);
         }
 
         .setting-input {
             padding: 8px 12px;
+            font-family: inherit;
             font-size: 14px;
-            border: 1px solid var(--google-grey-300);
-            border-radius: 4px;
-            width: 200px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--ink);
+            width: 220px;
         }
 
         .setting-input:focus {
             outline: none;
-            border-color: var(--google-blue);
+            border-color: var(--accent);
         }
 
         .pull-btn {
             padding: 8px 16px;
+            font-family: inherit;
             font-size: 13px;
             font-weight: 500;
-            border: 1px solid var(--google-grey-300);
-            border-radius: 4px;
-            background: white;
-            color: var(--google-grey-700);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: var(--card);
+            color: var(--ink-soft);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.15s, border-color 0.15s;
         }
 
         .pull-btn:hover {
-            background: var(--google-grey-100);
-            border-color: var(--google-grey-500);
+            background: var(--card-inset);
+            border-color: var(--ink-faint);
         }
 
         .pull-btn:disabled {
@@ -419,42 +519,43 @@
         }
 
         .pull-btn.pulling {
-            background: #e8f0fe;
-            border-color: var(--google-blue);
-            color: var(--google-blue);
+            background: var(--slate-tint);
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
         .model-status {
             font-size: 12px;
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 999px;
             font-weight: 500;
         }
 
         .model-status.installed {
-            background: #e6f4ea;
-            color: var(--google-green);
+            background: var(--ok-tint);
+            color: var(--ok);
         }
 
         .model-status.not-installed {
-            background: #fce8e6;
-            color: var(--google-red);
+            background: var(--err-tint);
+            color: var(--err);
         }
 
         .model-status.pulling {
-            background: #fef7e0;
-            color: #b06000;
+            background: var(--warn-tint);
+            color: var(--warn);
         }
 
         .loading-spinner {
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid var(--google-grey-300);
-            border-top-color: var(--google-blue);
+            border: 2px solid rgba(255,255,255,0.35);
+            border-top-color: white;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-right: 8px;
+            vertical-align: -3px;
         }
 
         @keyframes spin {
@@ -464,23 +565,24 @@
         .image-preview {
             max-width: 100%;
             max-height: 150px;
-            border-radius: 4px;
+            border-radius: 8px;
             margin-bottom: 12px;
         }
 
         .char-count {
             font-size: 12px;
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
             text-align: right;
             margin-top: 8px;
         }
 
         .error-message {
-            background: #fce8e6;
-            color: #c5221f;
+            background: var(--err-tint);
+            color: var(--err);
             padding: 12px 16px;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 14px;
+            line-height: 1.55;
             margin-bottom: 16px;
         }
 
@@ -489,50 +591,58 @@
             border: none;
             padding: 8px;
             cursor: pointer;
-            border-radius: 4px;
-            transition: background 0.2s;
+            border-radius: 6px;
+            transition: background 0.15s;
         }
 
         .copy-btn:hover {
-            background: var(--google-grey-200);
+            background: var(--slate-tint);
         }
 
         .copy-btn svg {
             width: 20px;
             height: 20px;
-            fill: var(--google-grey-500);
+            fill: var(--ink-faint);
+        }
+
+        .copy-btn:hover svg {
+            fill: var(--accent);
         }
 
         .output-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            min-height: 36px;
+            margin-bottom: 10px;
         }
 
         .output-label {
             font-size: 12px;
-            color: var(--google-grey-500);
+            font-weight: 600;
+            color: var(--ink-faint);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.08em;
         }
 
         .new-translation-btn {
-            background: white;
-            color: var(--google-blue);
-            border: 1px solid var(--google-blue);
-            padding: 10px 24px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--line);
+            padding: 10px 20px;
+            font-family: inherit;
             font-size: 14px;
             font-weight: 500;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
-            margin-left: 12px;
+            transition: background 0.15s, border-color 0.15s;
+            margin-right: 12px;
             display: none;
         }
 
         .new-translation-btn:hover {
-            background: #e8f0fe;
+            background: var(--slate-tint);
+            border-color: var(--accent);
         }
 
         .new-translation-btn.visible {
@@ -546,28 +656,37 @@
         }
 
         .history-count {
+            font-family: var(--sans);
             font-size: 13px;
             font-weight: 400;
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
         }
 
         .history-toggle-btn, .history-clear-btn {
-            background: white;
-            color: var(--google-blue);
-            border: 1px solid var(--google-grey-300);
+            background: var(--card);
+            color: var(--accent);
+            border: 1px solid var(--line);
             padding: 6px 14px;
+            font-family: inherit;
             font-size: 13px;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             margin-left: 8px;
+            transition: background 0.15s, border-color 0.15s;
         }
 
         .history-toggle-btn:hover, .history-clear-btn:hover {
-            background: #e8f0fe;
+            background: var(--slate-tint);
+            border-color: var(--accent);
         }
 
         .history-clear-btn {
-            color: var(--google-red, #ea4335);
+            color: var(--err);
+        }
+
+        .history-clear-btn:hover {
+            background: var(--err-tint);
+            border-color: var(--err);
         }
 
         .history-list {
@@ -575,10 +694,15 @@
         }
 
         .history-item {
-            border: 1px solid var(--google-grey-200);
-            border-radius: 8px;
-            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 12px 14px;
             margin-bottom: 10px;
+            transition: background 0.15s;
+        }
+
+        .history-item:hover {
+            background: var(--card-inset);
         }
 
         .history-meta {
@@ -586,13 +710,14 @@
             justify-content: space-between;
             align-items: center;
             font-size: 12px;
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
             margin-bottom: 6px;
         }
 
         .history-snippet {
+            font-family: var(--serif);
             font-size: 14px;
-            color: var(--google-grey-900);
+            color: var(--ink);
             white-space: pre-wrap;
             max-height: 72px;
             overflow: hidden;
@@ -601,7 +726,8 @@
         .history-actions button {
             background: none;
             border: none;
-            color: var(--google-blue);
+            font-family: inherit;
+            color: var(--accent);
             font-size: 12px;
             cursor: pointer;
             padding: 2px 6px;
@@ -612,20 +738,20 @@
         }
 
         .history-empty {
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
             font-style: italic;
             font-size: 14px;
         }
 
         footer {
             text-align: center;
-            padding: 24px;
-            font-size: 12px;
-            color: var(--google-grey-500);
+            padding: 28px 24px;
+            font-size: 13px;
+            color: var(--ink-faint);
         }
 
         footer a {
-            color: var(--google-blue);
+            color: var(--accent);
             text-decoration: none;
         }
 
@@ -652,8 +778,9 @@
         }
 
         .modal {
-            background: white;
-            border-radius: 8px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 14px;
             padding: 24px;
             max-width: 400px;
             width: 90%;
@@ -661,15 +788,15 @@
         }
 
         .modal-title {
-            font-family: 'Google Sans', sans-serif;
-            font-size: 18px;
+            font-family: var(--serif);
+            font-size: 19px;
             font-weight: 500;
             margin-bottom: 16px;
         }
 
         .progress-bar {
             height: 4px;
-            background: var(--google-grey-200);
+            background: var(--line);
             border-radius: 2px;
             overflow: hidden;
             margin-bottom: 12px;
@@ -677,30 +804,57 @@
 
         .progress-fill {
             height: 100%;
-            background: var(--google-blue);
+            background: var(--slate);
             transition: width 0.3s;
             width: 0%;
         }
 
         .progress-text {
             font-size: 13px;
-            color: var(--google-grey-700);
+            color: var(--ink-soft);
             margin-bottom: 8px;
         }
 
         .progress-detail {
             font-size: 12px;
-            color: var(--google-grey-500);
+            color: var(--ink-faint);
+        }
+
+        :is(button, select, input, textarea, a):focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
         }
 
         @media (max-width: 768px) {
+            .logo {
+                font-size: 30px;
+            }
+
             .translation-area {
                 grid-template-columns: 1fr;
             }
 
+            .actions {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+
+            .actions > div {
+                margin-left: auto;
+            }
+
+            .setting-row {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .setting-control {
+                flex-wrap: wrap;
+            }
+
             .input-section {
                 border-right: none;
-                border-bottom: 1px solid var(--google-grey-200);
+                border-bottom: 1px solid var(--line);
             }
 
             .language-bar {
@@ -711,13 +865,24 @@
                 min-width: calc(50% - 24px);
             }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
+
+            .status-dot.loading {
+                animation: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1 class="logo">Local <span>Translator</span></h1>
-            <p class="tagline">Private, local AI translation across 55 languages - powered by translateGemma</p>
+            <p class="logo-eyebrow">Cyfieithydd lleol</p>
+            <h1 class="logo">Local Translator</h1>
+            <p class="tagline">Every word stays on your machine. 55 languages, powered by translateGemma.</p>
         </header>
 
         <div class="main-card">
@@ -731,19 +896,23 @@
 
             <div class="translation-area">
                 <div class="input-section">
+                    <div class="output-header">
+                        <span class="output-label">Original</span>
+                    </div>
                     <div id="filePreview" style="display: none;"></div>
                     <div id="errorMessage" class="error-message" style="display: none;"></div>
                     
                     <div id="dropZone" class="drop-zone">
                         <svg viewBox="0 0 24 24"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
-                        <p class="drop-zone-text">Drag & drop files here or click to browse</p>
-                        <p class="drop-zone-hint">Supports PDF, Word (.docx), images, and text files<br><small style="color: #1a73e8;">Double-click to type text directly</small></p>
+                        <p class="drop-zone-text">Drag & drop a file here, or click to browse</p>
+                        <p class="drop-zone-hint">PDF, Word (.docx), images and plain text</p>
+                        <button type="button" class="type-instead" id="typeInsteadBtn">or start typing instead</button>
                         <input type="file" id="fileInput" class="file-input" accept=".pdf,.docx,.doc,.txt,.png,.jpg,.jpeg,.gif,.webp">
                     </div>
 
                     <div id="textInputContainer" style="display: none;">
                         <textarea id="textInput" class="text-input" placeholder="Type or paste text here to translate..."></textarea>
-                        <div class="char-count"><span id="charCount">0</span> characters</div>
+                        <div class="char-count"><span id="charCount">0</span> characters · Ctrl+Enter translates</div>
                     </div>
                 </div>
 
@@ -1320,6 +1489,20 @@
             dropZone.style.display = 'none';
             textInputContainer.style.display = 'block';
             textInput.focus();
+        });
+
+        document.getElementById('typeInsteadBtn').addEventListener('click', (e) => {
+            e.stopPropagation(); // don't trigger the drop zone's file picker
+            dropZone.style.display = 'none';
+            textInputContainer.style.display = 'block';
+            textInput.focus();
+        });
+
+        // Ctrl+Enter (Cmd+Enter on Mac) translates from the textarea
+        textInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !translateBtn.disabled) {
+                translateBtn.click();
+            }
         });
 
         // Language swap
